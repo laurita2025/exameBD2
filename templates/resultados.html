@@ -1,0 +1,202 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">📊 Mis Resultados</h2>
+            <p class="text-muted mb-0">
+                <strong>Estudiante:</strong> {{ nombre }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Tarjetas resumen -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-primary">Exámenes realizados</h6>
+                    <h2>{{ resultados|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center">
+
+                    <h6 class="text-success">Mejor Puntaje</h6>
+
+                    {% if resultados %}
+                        {% set mejor = resultados|map(attribute='porcentaje')|max %}
+                        <h2>{{ mejor }}%</h2>
+                    {% else %}
+                        <h2>0%</h2>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-info">
+                <div class="card-body text-center">
+                    <h6 class="text-info">Último intento</h6>
+
+                    {% if resultados %}
+                        {{ resultados[0]['fecha'].strftime('%d/%m/%Y') }}
+                    {% else %}
+                        -
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            Historial de Evaluaciones
+        </div>
+
+        <div class="card-body">
+
+            {% if resultados %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle">
+
+                    <thead class="table-dark">
+
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Puntaje</th>
+                        <th>Total</th>
+                        <th>Porcentaje</th>
+                        <th>Estado</th>
+                        <th>Anti-trampas</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for resultado in resultados %}
+
+                    <tr>
+
+                        <td>{{ loop.index }}</td>
+
+                        <td>
+                            {{ resultado['fecha'].strftime('%d/%m/%Y %H:%M') if resultado['fecha'] else 'N/A' }}
+                        </td>
+
+                        <td>
+                            <strong>{{ resultado['puntaje'] }}</strong>
+                        </td>
+
+                        <td>{{ resultado['total'] }}</td>
+
+                        <td>
+
+                            {% if resultado['porcentaje'] >= 70 %}
+
+                                <span class="badge bg-success fs-6">
+                                    {{ resultado['porcentaje'] }}%
+                                </span>
+
+                            {% elif resultado['porcentaje'] >= 51 %}
+
+                                <span class="badge bg-warning text-dark fs-6">
+                                    {{ resultado['porcentaje'] }}%
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger fs-6">
+                                    {{ resultado['porcentaje'] }}%
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if resultado['porcentaje'] >= 51 %}
+
+                                <span class="badge bg-success">
+                                    ✔ Aprobado
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    ✘ Reprobado
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if resultado['anti_trampas'] == 0 %}
+
+                                <span class="badge bg-success">
+                                    Sin incidencias
+                                </span>
+
+                            {% elif resultado['anti_trampas'] <= 5 %}
+
+                                <span class="badge bg-warning text-dark">
+                                    {{ resultado['anti_trampas'] }} advertencias
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    {{ resultado['anti_trampas'] }} intentos
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <div class="alert alert-info text-center">
+
+                    <h5>No existen resultados registrados.</h5>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

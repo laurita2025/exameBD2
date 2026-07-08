@@ -1,0 +1,101 @@
+{% extends 'layout.html' %}
+{% block title %}Resultado del Examen{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Tarjeta principal -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Resultado del Examen</h3>
+                </div>
+                <div class="card-body">
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Estudiante:</strong> {{ nombre }}</p>
+                            <p><strong>Fecha:</strong> {{ resultado.fecha.strftime('%d/%m/%Y %H:%M') if resultado.fecha else 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h2 class="mb-0 text-success">
+                                {{ resultado.puntaje }} / {{ resultado.total }}
+                            </h2>
+                            <h4 class="text-muted">{{ resultado.porcentaje }}%</h4>
+                        </div>
+                    </div>
+
+                    <!-- Tiempo usado -->
+                    <div class="mb-4">
+                        <p>
+                            <strong>Tiempo usado:</strong> 
+                            {{ resultado.tiempo_inicio.strftime('%H:%M:%S') if resultado.tiempo_inicio else 'N/A' }}
+                            -
+                            {{ resultado.tiempo_fin.strftime('%H:%M:%S') if resultado.tiempo_fin else 'N/A' }}
+                        </p>
+                        <p><strong>Incidentes anti-trampas:</strong> 
+                            <span class="badge bg-{{ 'danger' if resultado.anti_trampas > 0 else 'success' }}">
+                                {{ resultado.anti_trampas }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <!-- Estado final -->
+                    {% if resultado.porcentaje == 100 %}
+                        <div class="alert alert-success text-center fs-5">
+                            🎉 ¡Felicitaciones! Respondiste todas las preguntas correctamente.
+                        </div>
+                    {% elif resultado.porcentaje >= 70 %}
+                        <div class="alert alert-info text-center">
+                            ¡Buen trabajo! Aprobaste el examen.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            No alcanzaste el puntaje mínimo para aprobar.
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Preguntas incorrectas -->
+            {% if wrong_questions %}
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Preguntas contestadas incorrectamente ({{ wrong_questions|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for pregunta in wrong_questions %}
+                        <div class="list-group-item list-group-item-action">
+                            <h6 class="mb-2">{{ loop.index }}. {{ pregunta.texto }}</h6>
+                            <p class="mb-1">
+                                <strong>Tu respuesta:</strong> 
+                                <span class="text-danger">{{ pregunta.seleccionada }}</span>
+                            </p>
+                            <p>
+                                <strong>Respuesta correcta:</strong> 
+                                <span class="text-success">{{ pregunta.correcta }}</span>
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Botones de acción -->
+            <div class="d-flex gap-3 mt-4">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                    ← Volver al Dashboard
+                </a>
+                <a href="{{ url_for('lista_resultados') }}" class="btn btn-outline-secondary btn-lg">
+                    Ver historial de exámenes
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

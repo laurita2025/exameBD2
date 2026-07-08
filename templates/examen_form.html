@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2>{{ 'Editar' if examen else 'Nuevo' }} examen</h2>
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" name="nombre" class="form-control" value="{{ examen.nombre if examen else '' }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3" required>{{ examen.descripcion if examen else '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tiempo (min)</label>
+            <input type="number" name="tiempo" class="form-control" value="{{ examen.tiempo if examen else 20 }}" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Preguntas</label>
+            <select name="preguntas" class="form-select" multiple size="10" required>
+              {% for pregunta in preguntas %}
+              <option value="{{ pregunta._id }}" {% if examen and (pregunta._id in examen.preguntas) %}selected{% endif %}>{{ pregunta.texto }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button class="btn btn-success">Guardar</button>
+          <a href="{{ url_for('lista_examenes') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

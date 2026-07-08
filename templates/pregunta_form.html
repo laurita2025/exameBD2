@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2>{{ 'Editar' if pregunta else 'Nueva' }} pregunta</h2>
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Texto</label>
+            <textarea name="texto" class="form-control" rows="3" required>{{ pregunta.texto if pregunta else '' }}</textarea>
+          </div>
+          {% for i in range(4) %}
+          <div class="mb-3">
+            <label class="form-label">Opción {{ i + 1 }}</label>
+            <input type="text" name="opcion{{ i + 1 }}" class="form-control" value="{{ pregunta.opciones[i] if pregunta else '' }}" required>
+          </div>
+          {% endfor %}
+          <div class="mb-3">
+            <label class="form-label">Número de opción correcta</label>
+            <input type="number" name="correcta" class="form-control" min="1" max="4" value="{{ pregunta.correcta if pregunta else 1 }}" required>
+          </div>
+          <button class="btn btn-success">Guardar</button>
+          <a href="{{ url_for('lista_preguntas') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

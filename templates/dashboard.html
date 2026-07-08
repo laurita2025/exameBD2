@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+
+        <h1>Dashboard</h1>
+
+        <p>Bienvenido, <strong>{{ session["nombre"] }}</strong>.</p>
+
+        <!-- SOLO PARA VERIFICAR -->
+        <div class="alert alert-info mt-3">
+
+            <h5>Información de la sesión</h5>
+
+            <p><strong>Usuario:</strong> {{ session["nombre"] }}</p>
+
+            <p><strong>Rol:</strong> {{ session["rol"] }}</p>
+
+        </div>
+
+    </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-3"><div class="card p-3 shadow-sm"><h5>Total preguntas</h5><p>{{ total_preguntas }}</p></div></div>
+  <div class="col-md-3"><div class="card p-3 shadow-sm"><h5>Total exámenes</h5><p>{{ total_examenes }}</p></div></div>
+  <div class="col-md-3"><div class="card p-3 shadow-sm"><h5>Resultados</h5><p>{{ total_resultados }}</p></div></div>
+  <div class="col-md-3"><div class="card p-3 shadow-sm"><h5>Control</h5><p><a href="{{ url_for('examen_aleatorio') }}" class="btn btn-primary btn-sm">Tomar examen aleatorio</a></p></div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Banco de Preguntas</h2>
+  <a href="{{ url_for('nueva_pregunta') }}" class="btn btn-success">Nueva pregunta</a>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Texto</th>
+      <th>Correcta</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pregunta in preguntas %}
+    <tr>
+      <td>{{ pregunta.texto }}</td>
+      <td>{{ pregunta.opciones[pregunta.correcta|int - 1] if pregunta.correcta is string else pregunta.correcta }}</td>
+      <td>
+        <a href="{{ url_for('editar_pregunta', id=pregunta._id) }}" class="btn btn-sm btn-primary">Editar</a>
+        <a href="{{ url_for('eliminar_pregunta', id=pregunta._id) }}" class="btn btn-sm btn-danger">Eliminar</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

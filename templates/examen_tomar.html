@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row mb-3">
+  <div class="col-md-12">
+    <h2>{{ examen.nombre }}</h2>
+    <p>{{ examen.descripcion }}</p>
+    <div class="alert alert-warning">Tiempo: <span id="timer">{{ examen.tiempo }}:00</span></div>
+    <div id="warningInfo" class="alert alert-danger d-none" role="alert"></div>
+  </div>
+</div>
+<form method="post" action="{{ url_for('guardar_respuestas') }}" id="examForm">
+  <input type="hidden" name="examen_id" value="{{ examen.id }}">
+  <input type="hidden" name="tiempo_inicio" id="tiempo_inicio">
+  <input type="hidden" name="tiempo_fin" id="tiempo_fin">
+  <input type="hidden" name="anti_trampas" id="anti_trampas" value="0">
+  {% for pregunta in examen.preguntas %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5>Pregunta {{ loop.index }}</h5>
+      <p>{{ pregunta.texto }}</p>
+      {% for opcion in pregunta.opciones %}
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="respuesta_{{ pregunta._id }}" id="resp_{{ pregunta._id }}_{{ loop.index }}" value="{{ loop.index }}" required>
+        <label class="form-check-label" for="resp_{{ pregunta._id }}_{{ loop.index }}">{{ opcion }}</label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <button class="btn btn-success">Enviar examen</button>
+</form>
+{% endblock %}

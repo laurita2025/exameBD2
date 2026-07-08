@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title">Bienvenido al Sistema de Exámenes</h1>
+        <p class="card-text">Inicia sesión o regístrate para administrar preguntas, exámenes y realizar pruebas.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary">Registro</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

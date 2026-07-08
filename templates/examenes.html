@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Exámenes</h2>
+  <a href="{{ url_for('nuevo_examen') }}" class="btn btn-success">Nuevo examen</a>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Descripción</th>
+      <th>Tiempo (min)</th>
+      <th>Preguntas</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for examen in examenes %}
+    <tr>
+      <td>{{ examen.nombre }}</td>
+      <td>{{ examen.descripcion }}</td>
+      <td>{{ examen.tiempo }}</td>
+      <td>{{ examen.preguntas|length }}</td>
+      <td>
+        <a href="{{ url_for('editar_examen', id=examen._id) }}" class="btn btn-sm btn-primary">Editar</a>
+        <a href="{{ url_for('eliminar_examen', id=examen._id) }}" class="btn btn-sm btn-danger">Eliminar</a>
+        <a href="{{ url_for('comenzar_examen', id=examen._id) }}" class="btn btn-sm btn-success">Tomar</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
