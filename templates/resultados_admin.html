@@ -1,0 +1,357 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<style>
+
+body{
+    background:#f4f7fb;
+}
+
+.titulo{
+    font-size:40px;
+    font-weight:bold;
+    color:#1b3d6d;
+}
+
+.card-info{
+
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.12);
+    transition:.3s;
+}
+
+.card-info:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:0 10px 20px rgba(0,0,0,.2);
+
+}
+
+.numero{
+
+    font-size:38px;
+
+    font-weight:bold;
+
+}
+
+.table{
+
+    background:white;
+
+    border-radius:15px;
+
+    overflow:hidden;
+
+}
+
+.table thead{
+
+    background:#0d6efd;
+
+    color:white;
+
+}
+
+.table tbody tr:hover{
+
+    background:#eef6ff;
+
+}
+
+.progress{
+
+    height:20px;
+
+    border-radius:20px;
+
+}
+
+.badge{
+
+    font-size:14px;
+
+    padding:8px 15px;
+
+}
+
+.search-box{
+
+    border-radius:50px;
+
+    padding:12px;
+
+}
+
+</style>
+
+<div class="container-fluid">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h2 class="titulo">
+
+📊 Panel General de Resultados
+
+</h2>
+
+<input
+type="text"
+id="buscar"
+class="form-control search-box w-25"
+placeholder="🔍 Buscar estudiante...">
+
+</div>
+
+<div class="row mb-4">
+
+<div class="col-md-3">
+
+<div class="card card-info text-center">
+
+<div class="card-body">
+
+<h5>👨‍🎓 Estudiantes</h5>
+
+<div class="numero">{{ resultados|length }}</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card card-info text-center border-success">
+
+<div class="card-body">
+
+<h5>✅ Aprobados</h5>
+
+<div class="numero text-success">
+
+{{ resultados|selectattr("estado","equalto","Aprobado")|list|length }}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card card-info text-center border-danger">
+
+<div class="card-body">
+
+<h5>❌ Reprobados</h5>
+
+<div class="numero text-danger">
+
+{{ resultados|rejectattr("estado","equalto","Aprobado")|list|length }}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card card-info text-center border-warning">
+
+<div class="card-body">
+
+<h5>⚠ Incidencias</h5>
+
+<div class="numero text-warning">
+
+{{ resultados|selectattr("advertencias","gt",0)|list|length }}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-hover align-middle" id="tabla">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>👤 Estudiante</th>
+
+<th>📅 Fecha</th>
+
+<th>📝 Nota</th>
+
+<th>📚 Total</th>
+
+<th>📈 Rendimiento</th>
+
+<th>Estado</th>
+
+<th>Anti-trampas</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for r in resultados %}
+
+<tr>
+
+<td>{{ loop.index }}</td>
+
+<td><strong>{{ r.nombre }}</strong></td>
+
+<td>{{ r.email }}</td>
+
+<td>{{ r.fecha.strftime("%d/%m/%Y %H:%M") }}</td>
+
+<td>
+
+<span class="badge bg-primary">
+
+{{ r.puntaje }}
+
+</span>
+
+</td>
+
+<td>{{ r.total }}</td>
+
+<td width="220">
+
+<div class="progress">
+
+<div
+
+class="progress-bar
+
+{% if r.porcentaje>=70 %}
+
+bg-success
+
+{% elif r.porcentaje>=51 %}
+
+bg-warning
+
+{% else %}
+
+bg-danger
+
+{% endif %}"
+
+style="width:{{ r.porcentaje }}%;">
+
+{{ r.porcentaje }}%
+
+</div>
+
+</div>
+
+</td>
+
+<td>
+
+{% if r.estado=="Aprobado" %}
+
+<span class="badge bg-success">
+
+✔ Aprobado
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+✘ Reprobado
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if r.advertencias==0 %}
+
+<span class="badge bg-success">
+
+Sin incidencias
+
+</span>
+
+{% elif r.advertencias<=2 %}
+
+<span class="badge bg-warning">
+
+{{ r.advertencias }} advertencias
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+{{ r.advertencias }} intentos
+
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+document.getElementById("buscar").addEventListener("keyup",function(){
+
+let valor=this.value.toLowerCase();
+
+let filas=document.querySelectorAll("#tabla tbody tr");
+
+filas.forEach(f=>{
+
+f.style.display=f.innerText.toLowerCase().includes(valor)?"":"none";
+
+});
+
+});
+
+</script>
+
+{% endblock %}

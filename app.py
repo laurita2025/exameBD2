@@ -279,89 +279,235 @@ def comenzar_examen(id):
 
 @app.route("/examenes/guardar_respuestas", methods=["POST"])
 def guardar_respuestas():
+
     if "usuario" not in session:
         return redirect(url_for("login"))
+
     examen_id = request.form.get("examen_id", "aleatorio")
-    tiempo_inicio_raw = request.form.get("tiempo_inicio")
-    tiempo_fin_raw = request.form.get("tiempo_fin")
+
+    tiempo_inicio = datetime.utcnow()
+    tiempo_fin = datetime.utcnow()
+
     try:
-        tiempo_inicio = datetime.fromisoformat(tiempo_inicio_raw) if tiempo_inicio_raw else datetime.utcnow()
-    except ValueError:
-        tiempo_inicio = datetime.utcnow()
+        if request.form.get("tiempo_inicio"):
+            tiempo_inicio = datetime.fromisoformat(request.form["tiempo_inicio"])
+    except:
+        pass
+
     try:
-        tiempo_fin = datetime.fromisoformat(tiempo_fin_raw) if tiempo_fin_raw else datetime.utcnow()
-    except ValueError:
-        tiempo_fin = datetime.utcnow()
+        if request.form.get("tiempo_fin"):
+            tiempo_fin = datetime.fromisoformat(request.form["tiempo_fin"])
+    except:
+        pass
+
     respuestas = {}
+
     for key, value in request.form.items():
         if key.startswith("respuesta_"):
             respuestas[key.replace("respuesta_", "")] = value
+
     puntaje = 0
-    examen_obj = None
     total = 0
+    wrong_questions = []
+
+    # Buscar examen
     if examen_id != "aleatorio":
-        try:
-            examen_obj = examenes.find_one({"_id": ObjectId(examen_id)})
-        except Exception:
-            examen_obj = None
-        if not examen_obj:
+
+        examen = examenes.find_one({"_id": ObjectId(examen_id)})
+
+        if not examen:
             flash("Examen no encontrado", "danger")
             return redirect(url_for("dashboard"))
-        total = len(examen_obj["preguntas"])
+
+        total = len(examen["preguntas"])
+
     else:
+
         total = len(respuestas)
-    wrong_questions = []
+
+    # Calificar examen
     for pid, seleccion in respuestas.items():
-        try:
-            pregunta = preguntas.find_one({"_id": ObjectId(pid)})
-        except Exception:
-            pregunta = None
+
+        pregunta = preguntas.find_one({"_id": ObjectId(pid)})
+
         if not pregunta:
             continue
-        correcta_idx = int(pregunta["correcta"]) - 1 if pregunta.get("correcta") and str(pregunta["correcta"]).isdigit() else None
-        correcta_text = pregunta["opciones"][correcta_idx] if correcta_idx is not None and 0 <= correcta_idx < len(pregunta["opciones"]) else "Desconocida"
-        seleccion_text = "No respondida"
-        if seleccion and str(seleccion).isdigit():
+
+        correcta = str(pregunta["correcta"])
+
+        correcta_idx = int(correcta) - 1
+
+        correcta_texto = pregunta["opciones"][correcta_idx]
+
+        seleccion_texto = "No respondida"
+
+        if seleccion.isdigit():
+
             idx = int(seleccion) - 1
+
             if 0 <= idx < len(pregunta["opciones"]):
-                seleccion_text = pregunta["opciones"][idx]
-        if str(pregunta["correcta"]) == str(seleccion):
+                seleccion_texto = pregunta["opciones"][idx]
+
+        if correcta == seleccion:
+
             puntaje += 1
+
         else:
+
             wrong_questions.append({
+
                 "texto": pregunta["texto"],
-                "correcta": correcta_text,
-                "seleccionada": seleccion_text,
+
+                "correcta": correcta_texto,
+
+                "seleccionada": seleccion_texto,
+
                 "opciones": pregunta["opciones"]
+
             })
+
+    # ====== CALCULAR RESULTADO ======
+
+    porcentaje = round((puntaje / total) * 100, 2) if total else 0
+
+    estado = "Aprobado" if porcentaje >= 61 else "Reprobado"
+
+    advertencias = int(request.form.get("anti_trampas", 0))
+
     resultado = {
+
         "usuario_id": ObjectId(session["usuario"]),
+
         "examen_id": ObjectId(examen_id) if examen_id != "aleatorio" else "aleatorio",
+
         "respuestas": respuestas,
+
         "puntaje": puntaje,
+
         "total": total,
-        "porcentaje": round((puntaje / total) * 100, 2) if total > 0 else 0,
+
+        "porcentaje": porcentaje,
+
+        "estado": estado,
+
+        "advertencias": advertencias,
+
+        "anti_trampas": advertencias,
+
         "tiempo_inicio": tiempo_inicio,
+
         "tiempo_fin": tiempo_fin,
+
         "fecha": datetime.utcnow(),
-        "anti_trampas": int(request.form.get("anti_trampas", 0)),
+
         "wrong_questions": wrong_questions
+
     }
+
     resultados.insert_one(resultado)
+
     return render_template(
+
         "resultado_final.html",
+
         resultado=resultado,
+
         wrong_questions=wrong_questions,
+
         nombre=session.get("nombre", "Estudiante")
+
     )
 
 @app.route("/resultados")
 def lista_resultados():
+
     if "usuario" not in session:
         return redirect(url_for("login"))
-    lista = list(resultados.find({"usuario_id": ObjectId(session["usuario"])}))
-    return render_template("resultados.html", resultados=lista, nombre=session.get("nombre", "Estudiante"))
 
+    # ==========================
+    # ADMINISTRADOR
+    # ==========================
+    if es_admin():
+
+        lista = []
+
+        for r in resultados.find().sort("fecha", -1):
+
+            usuario = usuarios.find_one({"_id": ObjectId(r["usuario_id"])})
+
+            lista.append({
+
+                "_id": r["_id"],
+
+                "nombre": usuario["nombre"] if usuario else "Desconocido",
+
+                "fecha": r.get("fecha"),
+
+                "puntaje": r.get("puntaje", 0),
+
+                "total": r.get("total", 0),
+
+                "porcentaje": r.get("porcentaje", 0),
+
+                "estado": r.get(
+                    "estado",
+                    "Aprobado" if r.get("porcentaje", 0) >= 61 else "Reprobado"
+                ),
+
+                "advertencias": r.get(
+                    "advertencias",
+                    r.get("anti_trampas", 0)
+                )
+
+            })
+
+        aprobados = sum(
+            1 for r in lista if r["porcentaje"] >= 61
+        )
+
+        reprobados = len(lista) - aprobados
+
+        incidencias = sum(
+            1 for r in lista if r["advertencias"] > 0
+        )
+
+        return render_template(
+
+            "resultados_admin.html",
+
+            resultados=lista,
+
+            aprobados=aprobados,
+
+            reprobados=reprobados,
+
+            incidencias=incidencias
+
+        )
+
+    # ==========================
+    # ESTUDIANTE
+    # ==========================
+
+    lista = list(
+
+        resultados.find(
+
+            {"usuario_id": ObjectId(session["usuario"])}
+
+        ).sort("fecha", -1)
+
+    )
+
+    return render_template(
+
+        "resultados.html",
+
+        resultados=lista,
+
+        nombre=session.get("nombre", "Estudiante")
+
+    )
 @app.route("/api/control_ventana", methods=["POST"])
 def control_ventana():
     if "usuario" not in session:
