@@ -15,7 +15,6 @@ body{
 }
 
 .card-info{
-
     border:none;
     border-radius:15px;
     box-shadow:0 5px 15px rgba(0,0,0,.12);
@@ -23,67 +22,43 @@ body{
 }
 
 .card-info:hover{
-
     transform:translateY(-5px);
-
     box-shadow:0 10px 20px rgba(0,0,0,.2);
-
 }
 
 .numero{
-
     font-size:38px;
-
     font-weight:bold;
-
 }
 
 .table{
-
     background:white;
-
     border-radius:15px;
-
     overflow:hidden;
-
 }
 
 .table thead{
-
     background:#0d6efd;
-
     color:white;
-
 }
 
 .table tbody tr:hover{
-
     background:#eef6ff;
-
 }
 
 .progress{
-
-    height:20px;
-
+    height:22px;
     border-radius:20px;
-
 }
 
 .badge{
-
     font-size:14px;
-
     padding:8px 15px;
-
 }
 
 .search-box{
-
     border-radius:50px;
-
     padding:12px;
-
 }
 
 </style>
@@ -93,9 +68,7 @@ body{
 <div class="d-flex justify-content-between align-items-center mb-4">
 
 <h2 class="titulo">
-
 📊 Panel General de Resultados
-
 </h2>
 
 <input
@@ -109,79 +82,47 @@ placeholder="🔍 Buscar estudiante...">
 <div class="row mb-4">
 
 <div class="col-md-3">
-
 <div class="card card-info text-center">
-
 <div class="card-body">
-
 <h5>👨‍🎓 Estudiantes</h5>
-
-<div class="numero">{{ resultados|length }}</div>
-
+<div class="numero">
+{{ total_estudiantes }}
 </div>
-
 </div>
-
+</div>
 </div>
 
 <div class="col-md-3">
-
 <div class="card card-info text-center border-success">
-
 <div class="card-body">
-
 <h5>✅ Aprobados</h5>
-
 <div class="numero text-success">
-
-{{ resultados|selectattr("estado","equalto","Aprobado")|list|length }}
-
+{{ aprobados }}
 </div>
-
 </div>
-
 </div>
-
 </div>
 
 <div class="col-md-3">
-
 <div class="card card-info text-center border-danger">
-
 <div class="card-body">
-
 <h5>❌ Reprobados</h5>
-
 <div class="numero text-danger">
-
-{{ resultados|rejectattr("estado","equalto","Aprobado")|list|length }}
-
+{{ reprobados }}
 </div>
-
 </div>
-
 </div>
-
 </div>
 
 <div class="col-md-3">
-
 <div class="card card-info text-center border-warning">
-
 <div class="card-body">
-
 <h5>⚠ Incidencias</h5>
-
 <div class="numero text-warning">
-
-{{ resultados|selectattr("advertencias","gt",0)|list|length }}
-
+{{ incidencias }}
 </div>
-
 </div>
-
 </div>
-
 </div>
 
 </div>
@@ -195,19 +136,12 @@ placeholder="🔍 Buscar estudiante...">
 <tr>
 
 <th>#</th>
-
 <th>👤 Estudiante</th>
-
 <th>📅 Fecha</th>
-
 <th>📝 Nota</th>
-
 <th>📚 Total</th>
-
-<th>📈 Rendimiento</th>
-
+<th width="260">📈 Rendimiento</th>
 <th>Estado</th>
-
 <th>Anti-trampas</th>
 
 </tr>
@@ -222,11 +156,17 @@ placeholder="🔍 Buscar estudiante...">
 
 <td>{{ loop.index }}</td>
 
-<td><strong>{{ r.nombre }}</strong></td>
+<td>
+<strong>{{ r.nombre }}</strong>
+</td>
 
-<td>{{ r.email }}</td>
-
-<td>{{ r.fecha.strftime("%d/%m/%Y %H:%M") }}</td>
+<td>
+{% if r.fecha %}
+{{ r.fecha.strftime("%d/%m/%Y %H:%M") }}
+{% else %}
+-
+{% endif %}
+</td>
 
 <td>
 
@@ -238,43 +178,27 @@ placeholder="🔍 Buscar estudiante...">
 
 </td>
 
-<td>{{ r.total }}</td>
+<td>
 
-<td width="220">
+    {{ r.total }}
+
+</td>
+
+<td>
 
 <div class="progress">
-
-<div
-
-class="progress-bar
-
-{% if r.porcentaje>=70 %}
-
-bg-success
-
-{% elif r.porcentaje>=51 %}
-
-bg-warning
-
-{% else %}
-
-bg-danger
-
-{% endif %}"
-
-style="width:{{ r.porcentaje }}%;">
-
-{{ r.porcentaje }}%
-
-</div>
-
+    <div class="progress-bar {% if r.porcentaje >= 61 %}bg-success{% elif r.porcentaje >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+         role="progressbar"
+         style="width: {{ r.porcentaje }}%;">
+        {{ r.porcentaje }}%
+    </div>
 </div>
 
 </td>
 
 <td>
 
-{% if r.estado=="Aprobado" %}
+{% if r.estado == "Aprobado" %}
 
 <span class="badge bg-success">
 
@@ -296,7 +220,7 @@ style="width:{{ r.porcentaje }}%;">
 
 <td>
 
-{% if r.advertencias==0 %}
+{% if r.advertencias == 0 %}
 
 <span class="badge bg-success">
 
@@ -304,9 +228,9 @@ Sin incidencias
 
 </span>
 
-{% elif r.advertencias<=2 %}
+{% elif r.advertencias <= 2 %}
 
-<span class="badge bg-warning">
+<span class="badge bg-warning text-dark">
 
 {{ r.advertencias }} advertencias
 
@@ -338,15 +262,15 @@ Sin incidencias
 
 <script>
 
-document.getElementById("buscar").addEventListener("keyup",function(){
+document.getElementById("buscar").addEventListener("keyup", function(){
 
-let valor=this.value.toLowerCase();
+let valor = this.value.toLowerCase();
 
-let filas=document.querySelectorAll("#tabla tbody tr");
+let filas = document.querySelectorAll("#tabla tbody tr");
 
-filas.forEach(f=>{
+filas.forEach(function(fila){
 
-f.style.display=f.innerText.toLowerCase().includes(valor)?"":"none";
+fila.style.display = fila.innerText.toLowerCase().includes(valor) ? "" : "none";
 
 });
 
@@ -355,3 +279,26 @@ f.style.display=f.innerText.toLowerCase().includes(valor)?"":"none";
 </script>
 
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
